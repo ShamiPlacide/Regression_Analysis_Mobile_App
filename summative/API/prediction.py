@@ -1,5 +1,5 @@
 """
-Task 2 — FastAPI prediction service for the per capita electricity model.
+Task 2 — FastAPI prediction service for the per-capita electricity model.
 
 Serves the Random Forest pipeline trained in Task 1
 (`summative/linear_regression/best_model.pkl`, a joblib dict bundle).
@@ -17,12 +17,14 @@ Then open http://127.0.0.1:8000/docs
 """
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -50,7 +52,7 @@ TRIO = ["renewables_share_energy", "fossil_share_energy", "low_carbon_share_ener
 RANDOM_STATE = 42
 
 # In-memory holder so the bundle is loaded ONCE (at startup) and can be swapped by /retrain.
-STATE: dict = {"bundle": None}
+STATE: dict = {"bundle": None, "load_error": None}
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +73,7 @@ def get_bundle() -> dict:
 
 
 def predict_per_capita_electricity(raw_features: dict, bundle: Optional[dict] = None) -> float:
-    """Predict per-capita electricity (kWh) from a dict of RAW feature values.
+    """Predict percapita electricity (kWh) from a dict of RAW feature values.
 
     The saved pipeline handles impute + log + scale internally, so we pass raw,
     unscaled values straight through. The energy-mix shares may be None/NaN.
@@ -153,11 +155,36 @@ class RetrainResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # FastAPI app + CORS
 # ---------------------------------------------------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load the model bundle ONCE at startup (modern replacement for on_event).
+
+    A load failure (e.g., a scikit-learn version mismatch between the environment
+    that SAVED best_model.pkl and this one) is caught and recorded instead of
+    crashing the server — the health endpoint then reports the reason, and
+    /predict returns a clean 503 until a compatible model is available.
+    """
+    try:
+        STATE["bundle"] = load_bundle()
+        STATE["load_error"] = None
+        print(f"[startup] Loaded model '{STATE['bundle'].get('model_name')}' "
+              f"(scikit-learn {sklearn.__version__}).")
+    except Exception as exc:  # noqa: BLE001
+        STATE["bundle"] = None
+        STATE["load_error"] = f"{type(exc).__name__}: {exc}"
+        print(f"[startup] WARNING — could not load model: {STATE['load_error']}")
+        print("[startup] Hint: best_model.pkl must be loaded with the SAME scikit-learn "
+              "version that saved it. Pin scikit-learn to match (see requirements.txt).")
+    yield
+    STATE["bundle"] = None  # cleanup on shutdown
+
+
 app = FastAPI(
     title="Per-Capita Electricity Prediction API",
     description="Predicts a country's electricity generated per person (kWh) from its "
                 "energy & economic profile. Model: Random Forest (Task 1).",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -195,41 +222,35 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-def _load_model_on_startup() -> None:
-    """Load the model bundle once, when the server starts (not per request)."""
-    try:
-        STATE["bundle"] = load_bundle()
-    except FileNotFoundError:
-        # Leave as None; endpoints will surface a clear 503 until a model exists.
-        STATE["bundle"] = None
-
-
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 @app.get("/")
 def health() -> dict:
-    """Health check + which model is loaded."""
+    """Health check + which model is loaded (and why not, if load failed)."""
     bundle = STATE["bundle"]
     return {
-        "status": "ok",
+        "status": "ok" if bundle is not None else "degraded",
         "model_loaded": bundle is not None,
         "model_used": (bundle or {}).get("model_name"),
         "target": (bundle or {}).get("target", TARGET),
         "expected_features": FEATURES,
+        "sklearn_version": sklearn.__version__,
+        "load_error": STATE["load_error"],  # null when healthy
     }
 
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest) -> PredictionResponse:
-    """Predict per-capita electricity (kWh) from 7 raw feature values.
+    """Predict percapita electricity (kWh) from 7 raw feature values.
 
     Pydantic validates types & ranges automatically -> malformed input returns 422.
     """
     bundle = STATE["bundle"]
     if bundle is None:
-        raise HTTPException(status_code=503, detail="Model not loaded. Train a model first.")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Model not loaded. {STATE['load_error'] or 'Train a model first.'}")
     pred = predict_per_capita_electricity(request.model_dump(), bundle=bundle)
     return PredictionResponse(
         predicted_per_capita_electricity_kwh=round(pred, 2),
@@ -301,5 +322,10 @@ async def retrain(file: UploadFile = File(...)) -> RetrainResponse:
 
 
 if __name__ == "__main__":
+    import os
+
     import uvicorn
-    uvicorn.run("prediction:app", host="0.0.0.0", port=8000, reload=True)
+
+    # Honour the platform-provided PORT (Render sets it); default to 8000 locally.
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run("prediction:app", host="0.0.0.0", port=port, reload=False)
