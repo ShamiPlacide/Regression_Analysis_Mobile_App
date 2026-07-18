@@ -1,0 +1,22 @@
+# Render Blueprint for the FastAPI prediction service.
+#
+# PLACEMENT: put this file at your repository ROOT — the folder that contains
+# the `summative/` directory (i.e. Regression_Analysis_Mobile_App/render.yaml).
+#
+# Render reads it automatically when you create a "Blueprint" from the repo, and
+# provisions the web service below with no manual field entry.
+services:
+  - type: web
+    name: electricity-predictor-api
+    env: python
+    plan: free                      # free tier is fine for this assignment
+    region: oregon                  # change if you prefer another region
+    rootDir: summative/API          # build & start run from here (requirements.txt + prediction.py live here)
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn prediction:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /              # our GET / returns 200 -> Render marks the service healthy
+    envVars:
+      # Pin Python to a version with wheels for scikit-learn 1.6.1 (matches the
+      # model's training environment). Keeps the deployed sklearn ABI consistent.
+      - key: PYTHON_VERSION
+        value: "3.11.9"
