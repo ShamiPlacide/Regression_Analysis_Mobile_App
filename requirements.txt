@@ -1,11 +1,17 @@
 # Runtime deps for the FastAPI prediction service (Render deployment).
-# Generated from the uv-managed environment; mirrors pyproject.toml's API deps.
-fastapi==0.139.2
-uvicorn==0.51.0
-pydantic==2.13.4
+# This file lives at the REPOSITORY ROOT (Render's build installs it from there).
+#
+# CRITICAL: scikit-learn is pinned to the version that SAVED best_model.pkl.
+# best_model.pkl was produced in Google Colab with scikit-learn 1.6.1, so we pin
+# 1.6.1 here. numpy/pandas/scipy are capped to versions that are ABI-compatible
+# with scikit-learn 1.6.1 (the very newest numpy 2.4 / pandas 3.0 are NOT — they
+# can break unpickling or import at runtime), matching the Colab-era stack.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30
+pydantic>=2.7
+python-multipart>=0.0.9
 scikit-learn==1.6.1
-pandas==3.0.3
-numpy==2.4.6
-joblib==1.5.3
-python-multipart==0.0.32
-starlette==1.3.1
+numpy>=1.26,<2.2
+pandas>=2.1,<2.3
+scipy>=1.11,<1.15
+joblib>=1.3
