@@ -1,0 +1,20 @@
+name: electricity_predictor
+description: Single-screen app that predicts a country's per-capita electricity from its energy profile.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # HTTP client used by lib/services/prediction_service.dart to call the FastAPI /predict endpoint.
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
