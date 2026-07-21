@@ -69,13 +69,14 @@ class PredictionService {
     } on PredictionException {
       rethrow; // already a clean, user-facing message
     } on TimeoutException {
-      throw const PredictionException(
-          "The server took too long to respond. Is the API running?");
-    } catch (_) {
+      throw PredictionException(
+          "The server took too long to respond (>20s).\nURL: $kApiBaseUrl\n"
+          "If it's the first call, the API may be waking from sleep — try again.");
+    } catch (e) {
       // SocketException (mobile) or http.ClientException (web) etc. land here.
-      throw const PredictionException(
-          "Couldn't reach the server — check your connection and that the API is "
-          "running and reachable at the configured URL.");
+      // The URL + technical detail below make the real cause visible on screen.
+      throw PredictionException(
+          "Couldn't reach the API.\nURL tried: $kApiBaseUrl\nTechnical detail: $e");
     }
   }
 

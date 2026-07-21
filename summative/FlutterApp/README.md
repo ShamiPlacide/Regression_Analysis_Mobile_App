@@ -37,6 +37,21 @@ flutter pub get
 flutter run             # pick an emulator or connected device
 ```
 
+### ⚠️ Required setup after `flutter create .` — Android INTERNET permission
+The generated `android/` folder is not committed (see `.gitignore`), and a fresh
+Android release build does **not** include network access by default. After
+regenerating the platform folders, add this line to
+`android/app/src/main/AndroidManifest.xml`, as the first child of `<manifest>`
+(above `<application>`):
+
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
+```
+
+Without it, the app builds fine but every API call fails with
+"Couldn't reach the API" on a release build. (Debug builds include it
+automatically, which is why it can be easy to miss.)
+
 ## Using the app
 Enter the 4 required fields (GDP, population, energy per capita, energy intensity) and,
 optionally, the 3 energy-mix shares (leave blank if unknown). Tap **Predict**.
