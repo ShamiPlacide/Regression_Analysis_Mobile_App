@@ -1,6 +1,4 @@
 # Runtime deps for the FastAPI prediction service (Render deployment).
-# This file lives at the REPOSITORY ROOT (Render's build installs it from there).
-#
 # CRITICAL: scikit-learn is pinned to the version that SAVED best_model.pkl.
 # best_model.pkl was produced in Google Colab with scikit-learn 1.6.1, so we pin
 # 1.6.1 here. numpy/pandas/scipy are capped to versions that are ABI-compatible

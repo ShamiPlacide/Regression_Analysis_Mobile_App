@@ -22,7 +22,7 @@ class ElectricityPredictorApp extends StatelessWidget {
   }
 }
 
-/// Declarative description of one input field — drives the UI, the validation,
+/// Declarative description of one input field drives the UI, the validation,
 /// and the request body, so nothing is duplicated across those three concerns.
 class FeatureSpec {
   final String key; // exact JSON key the API expects
@@ -195,7 +195,7 @@ class _PredictionPageState extends State<PredictionPage> {
   }
 }
 
-/// The result display area — shows exactly one of: idle hint, success card,
+/// The result display area shows exactly one of: idle hint, success card,
 /// or server/network error card. (Client-side field errors appear inline under
 /// each field via the Form validators.)
 class _ResultArea extends StatelessWidget {

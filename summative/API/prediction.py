@@ -188,7 +188,7 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
-# CORS — configured deliberately, NOT with a wildcard. Rationale (for the demo):
+# CORS — configured deliberately, NOT with a wildcard:
 #
 #   allow_origins   : an explicit allow-list, never ["*"]. A browser will only let
 #                     these exact origins call the API from JavaScript, so a random
@@ -210,7 +210,6 @@ app = FastAPI(
 ALLOWED_ORIGINS = [
     "http://localhost:3000",          # local web/Flutter dev
     "http://127.0.0.1:3000",
-    "https://REPLACE_WITH_RENDER_URL",  # <-- fill in the real front-end origin at deploy
 ]
 
 app.add_middleware(
@@ -263,7 +262,7 @@ async def retrain(file: UploadFile = File(...)) -> RetrainResponse:
     """Retrain the pipeline on an uploaded CSV and overwrite best_model.pkl.
 
     The CSV must contain the 7 feature columns + the target column
-    (`per_capita_electricity`). We apply the same cleaning (drop rows missing CORE
+    (`per_capita_electricity`). I applied the same cleaning (drop rows missing CORE
     features / target), refit the exact Task-1 pipeline, evaluate on a held-out split,
     save the new bundle, and hot-swap it into memory.
     """

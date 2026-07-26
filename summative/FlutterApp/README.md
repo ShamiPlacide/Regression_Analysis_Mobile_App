@@ -1,10 +1,10 @@
-# FlutterApp — Per-Capita Electricity Predictor (Task 3)
+# FlutterApp Per-Capita Electricity Predictor (Task 3)
 
 A single-screen Flutter app that sends 7 energy/economic features to the deployed
 FastAPI service and displays the predicted per-capita electricity (kWh/person).
 
 ## What's in this folder
-Only the source needed to build the app — the generated `android/`, `ios/`, `web/`,
+Only the source needed to build the app the generated `android/`, `ios/`, `web/`,
 `build/`, and `.dart_tool/` folders are intentionally **not** committed (they are
 regenerated automatically; see below).
 
@@ -22,14 +22,14 @@ Deployed FastAPI service:
 
 ## How to run
 
-### Option A — FlutLab.io (what this project was built with)
+### Option A FlutLab.io (what this project was built with)
 1. Create/open a Flutter project in FlutLab.
 2. Add `http: ^1.2.0` to `pubspec.yaml` dependencies → **Pub Get**.
 3. Put these files in place: `lib/config.dart`, `lib/services/prediction_service.dart`,
    `lib/main.dart`.
 4. Press **Run** → the app opens in the FlutLab emulator/preview.
 
-### Option B — Local Flutter SDK
+### Option B Local Flutter SDK
 ```bash
 cd summative/FlutterApp
 flutter create .        # regenerates android/ios/web/ scaffolding around this source
@@ -37,7 +37,7 @@ flutter pub get
 flutter run             # pick an emulator or connected device
 ```
 
-### ⚠️ Required setup after `flutter create .` — Android INTERNET permission
+###  Required setup after `flutter create .`  Android INTERNET permission
 The generated `android/` folder is not committed (see `.gitignore`), and a fresh
 Android release build does **not** include network access by default. After
 regenerating the platform folders, add this line to

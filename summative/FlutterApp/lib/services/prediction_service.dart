@@ -1,10 +1,3 @@
-// ---------------------------------------------------------------------------
-// API service — this is THE file that talks to the FastAPI backend.
-// (For the video demo: "here is the Flutter code where I call the API.")
-//
-// Keeping all networking here (not in the widget) means the UI just calls
-// PredictionService().predict(...) and reacts to the result.
-// ---------------------------------------------------------------------------
 import "dart:async";
 import "dart:convert";
 
@@ -20,7 +13,7 @@ class PredictionResult {
 }
 
 /// A user-readable error (bad input rejected by the server, or a network problem).
-/// The UI shows [message] directly — it is always safe/clean text, never raw JSON.
+/// The UI shows [message] directly it is always safe/clean text, never raw JSON.
 class PredictionException implements Exception {
   final String message;
   const PredictionException(this.message);
@@ -32,10 +25,8 @@ class PredictionService {
   final http.Client _client;
   PredictionService([http.Client? client]) : _client = client ?? http.Client();
 
-  /// Calls POST {kApiBaseUrl}/predict.
-  ///
   /// [features] must contain the 7 keys the API expects. The three energy-mix
-  /// shares may be `null` (meaning "unknown") — they are sent as JSON null, not 0.
+  /// shares may be `null` (meaning "unknown"), they are sent as JSON null, not 0.
   Future<PredictionResult> predict(Map<String, double?> features) async {
     final uri = Uri.parse("$kApiBaseUrl/predict");
     try {
