@@ -26,7 +26,7 @@ The project has three parts:
 
 - API base URL: https://electricity-predictor-api.onrender.com
 - Interactive API docs (Swagger): https://electricity-predictor-api.onrender.com/docs
-- Video demo: ADD_YOUR_VIDEO_LINK_HERE
+- Video demo: https://youtu.be/4CHIlVN6rvc
 
 Note: the API is hosted on a free tier that sleeps after about 15 minutes of inactivity, so
 the first request can take up to a minute while it wakes up.
